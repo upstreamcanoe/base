@@ -23,6 +23,9 @@ func Do(req *http.Request) ([]byte, error) {
 // PostJSON 快速发起 JSON POST 请求
 // body: 序列化后的请求体
 func PostJSON(ctx context.Context, url string, body []byte) ([]byte, error) {
+	if ctx == nil {
+		ctx = context.Background()
+	}
 	req, err := http.NewRequestWithContext(ctx, "POST", url, bytes.NewBuffer(body))
 	if err != nil {
 		return nil, err
@@ -33,6 +36,9 @@ func PostJSON(ctx context.Context, url string, body []byte) ([]byte, error) {
 
 // Get 快速发起 GET 请求
 func Get(ctx context.Context, url string) ([]byte, error) {
+	if ctx == nil {
+		ctx = context.Background()
+	}
 	req, err := http.NewRequestWithContext(ctx, "GET", url, nil)
 	if err != nil {
 		return nil, err

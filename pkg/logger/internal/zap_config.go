@@ -1,37 +1,32 @@
 package internal
 
 import (
-	"time"
-
+	"go.uber.org/zap"
 	"go.uber.org/zap/zapcore"
 )
 
 var config *Zap
 
 type Zap struct {
-	Level         string `mapstructure:"level" json:"level" yaml:"level"`                            // 级别
-	Prefix        string `mapstructure:"prefix" json:"prefix" yaml:"prefix"`                         // 日志前缀
-	Format        string `mapstructure:"format" json:"format" yaml:"format"`                         // 输出
-	Director      string `mapstructure:"director" json:"director"  yaml:"director"`                  // 日志文件夹
-	EncodeLevel   string `mapstructure:"encode-level" json:"encode-level" yaml:"encode-level"`       // 编码级
-	StacktraceKey string `mapstructure:"stacktrace-key" json:"stacktrace-key" yaml:"stacktrace-key"` // 栈名
-	ShowLine      bool   `mapstructure:"show-line" json:"show-line" yaml:"show-line"`                // 显示行
-	LogInConsole  bool   `mapstructure:"log-in-console" json:"log-in-console" yaml:"log-in-console"` // 输出控制台
-	RetentionDay  int    `mapstructure:"retention-day" json:"retention-day" yaml:"retention-day"`    // 日志保留天数
+	Level        string `mapstructure:"level" json:"level" yaml:"level"`                            // 级别
+	Format       string `mapstructure:"format" json:"format" yaml:"format"`                         // 输出
+	Director     string `mapstructure:"director" json:"director"  yaml:"director"`                  // 日志文件夹
+	EncodeLevel  string `mapstructure:"encode-level" json:"encode-level" yaml:"encode-level"`       // 编码级
+	ShowLine     bool   `mapstructure:"show-line" json:"show-line" yaml:"show-line"`                // 显示行
+	LogInConsole bool   `mapstructure:"log-in-console" json:"log-in-console" yaml:"log-in-console"` // 输出控制台
+	RetentionDay int    `mapstructure:"retention-day" json:"retention-day" yaml:"retention-day"`    // 日志保留天数
 }
 
 func NewConfig() *Zap {
 	return &Zap{
 		// debug,info,warn,error,dpanic,panic,fatal
-		Level:         "info",                       // 级别
-		Prefix:        "",                           // 日志前缀
-		Format:        "console",                    // 输出
-		Director:      "logs",                       // 日志文件夹
-		EncodeLevel:   "LowercaseColorLevelEncoder", // 小写带色彩日志
-		StacktraceKey: "",                           // 栈名
-		ShowLine:      true,                         // 显示行号
-		LogInConsole:  true,                         // 输出到控制台
-		RetentionDay:  -1,                           // 日志保留天数, 小于等于0则永久保留
+		Level:        "info",                // 级别
+		Format:       "console",             // 输出
+		Director:     "logs",                // 日志文件夹
+		EncodeLevel:  "CapitalLevelEncoder", // 大写无颜色日志
+		ShowLine:     true,                  // 显示行号
+		LogInConsole: true,                  // 输出到控制台
+		RetentionDay: -1,                    // 日志保留天数, 小于等于0则永久保留
 	}
 }
 
@@ -48,31 +43,27 @@ func (c *Zap) Levels() []zapcore.Level {
 	return levels
 }
 
+// Encoder 日志编码器: 一些基础配置, 如时间格式,颜色,输出格式等
 func (c *Zap) Encoder() zapcore.Encoder {
-	config := zapcore.EncoderConfig{
-		TimeKey:       "time",
-		NameKey:       "name",
-		LevelKey:      "level",
-		CallerKey:     "caller",
-		MessageKey:    "message",
-		StacktraceKey: c.StacktraceKey,
-		LineEnding:    zapcore.DefaultLineEnding,
-		EncodeTime: func(t time.Time, encoder zapcore.PrimitiveArrayEncoder) {
-			encoder.AppendString(c.Prefix + t.Format("2006-01-02 15:04:05.000"))
-		},
-		EncodeLevel:    c.LevelEncoder(),
-		EncodeCaller:   zapcore.FullCallerEncoder,
-		EncodeDuration: zapcore.SecondsDurationEncoder,
-	}
+	encoderConfig := zap.NewProductionEncoderConfig()
+	encoderConfig.EncodeTime = zapcore.TimeEncoderOfLayout("2006-01-02 15:04:05.000")
+	encoderConfig.EncodeLevel = c.LevelEncoder()
+
+	/*
+		# ConsoleEncoder（人类友好，制表符分隔）
+		2024-01-15 14:23:01.123  INFO  user/service.go:42  用户登录成功  {"uid": 123, "ip": "192.168.1.1"}
+
+		# JSONEncoder（机器友好，结构化）
+		{"ts":"2024-01-15 14:23:01.123","level":"INFO","caller":"user/service.go:42","msg":"用户登录成功","uid":123,"ip":"192.168.1.1"}
+	*/
 	if c.Format == "json" {
-		return zapcore.NewJSONEncoder(config)
+		return zapcore.NewJSONEncoder(encoderConfig)
 	}
-	return zapcore.NewConsoleEncoder(config)
+	return zapcore.NewConsoleEncoder(encoderConfig)
 
 }
 
-// LevelEncoder 根据 EncodeLevel 返回 zapcore.LevelEncoder
-// Author [SliverHorn](https://github.com/SliverHorn)
+// LevelEncoder 编码级别: 大小写 + 颜色
 func (c *Zap) LevelEncoder() zapcore.LevelEncoder {
 	switch {
 	case c.EncodeLevel == "LowercaseLevelEncoder": // 小写编码器(默认)
@@ -84,6 +75,6 @@ func (c *Zap) LevelEncoder() zapcore.LevelEncoder {
 	case c.EncodeLevel == "CapitalColorLevelEncoder": // 大写编码器带颜色
 		return zapcore.CapitalColorLevelEncoder
 	default:
-		return zapcore.LowercaseLevelEncoder
+		return zapcore.CapitalLevelEncoder
 	}
 }

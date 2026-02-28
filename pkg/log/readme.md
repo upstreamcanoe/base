@@ -1,0 +1,1 @@
+该log源自gitea.ddegame.cn/open/servicebase/pkg/log, 重构了Trace()方法, 使得能去除sql日志中的换行符
