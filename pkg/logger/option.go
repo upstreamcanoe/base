@@ -1,7 +1,7 @@
 package logger
 
 import (
-	"github.com/upstreamboat/base/pkg/logger/internal"
+	"github.com/upstreamcanoe/base/pkg/logger/internal"
 )
 
 // Option 日志配置项
@@ -17,11 +17,11 @@ func WithLevel(level string) Option {
 
 // WithPrefix 设置日志前缀
 // 默认 ""
-func WithPrefix(prefix string) Option {
-	return func(z *internal.Zap) {
-		z.Prefix = prefix
-	}
-}
+//func WithPrefix(prefix string) Option {
+//	return func(z *internal.Zap) {
+//		z.Prefix = prefix
+//	}
+//}
 
 // WithFormat 输出格式
 // 默认 console
@@ -50,11 +50,11 @@ func WithEncodeLevel(encodeLevel string) Option {
 
 // WithStacktraceKey 栈名
 // 默认 ""
-func WithStacktraceKey(stacktraceKey string) Option {
-	return func(z *internal.Zap) {
-		z.StacktraceKey = stacktraceKey
-	}
-}
+//func WithStacktraceKey(stacktraceKey string) Option {
+//	return func(z *internal.Zap) {
+//		z.StacktraceKey = stacktraceKey
+//	}
+//}
 
 // WithShowLine 显示行号
 // 默认 true

@@ -3,7 +3,7 @@ package logger
 import (
 	"sync"
 
-	"github.com/upstreamboat/base/pkg/logger/internal"
+	"github.com/upstreamcanoe/base/pkg/logger/internal"
 	"go.uber.org/zap"
 )
 

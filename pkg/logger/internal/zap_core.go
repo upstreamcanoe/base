@@ -5,7 +5,7 @@ import (
 	"os"
 	"time"
 
-	"github.com/upstreamboat/base/pkg/utils"
+	"github.com/upstreamcanoe/base/pkg/utils"
 
 	"go.uber.org/zap"
 	"go.uber.org/zap/zapcore"

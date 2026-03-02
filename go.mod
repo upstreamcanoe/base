@@ -1,4 +1,4 @@
-module github.com/upstreamboat/base
+module github.com/upstreamcanoe/base
 
 go 1.25
 
