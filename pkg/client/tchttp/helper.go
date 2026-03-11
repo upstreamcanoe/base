@@ -3,19 +3,31 @@ package tchttp
 import (
 	"bytes"
 	"context"
+	"fmt"
 	"io"
 	"net/http"
 )
 
 // Do 发起请求，封装了通用的逻辑
 func Do(req *http.Request) ([]byte, error) {
-	response, err := DefaultClient.Do(req)
+	response, err := GetClient().Do(req)
 	if err != nil {
 		return nil, err
 	}
-	defer response.Body.Close() // 必须 Close，否则连接无法回收到池中复用
+	if response.Body != nil {
+		defer response.Body.Close()
+	}
 
-	respBytes, _ := io.ReadAll(response.Body)
+	if response.StatusCode < 200 || response.StatusCode >= 300 {
+		return nil, fmt.Errorf("unexpected status code: %d", response.StatusCode)
+	}
+
+	// 防止OOM(内存溢出)
+	const maxBodySize = 32 << 20 // 32 MB
+	respBytes, err := io.ReadAll(io.LimitReader(response.Body, maxBodySize))
+	if err != nil {
+		return nil, fmt.Errorf("read response body failed: %w", err)
+	}
 
 	return respBytes, nil
 }

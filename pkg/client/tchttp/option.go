@@ -1,7 +1,6 @@
 package tchttp
 
 import (
-	"fmt"
 	"net/http"
 	"net/url"
 	"time"
@@ -10,9 +9,9 @@ import (
 // Option 定义配置函数
 type Option func(*http.Transport, *http.Client)
 
-func WithRequestTimeout(seconds int) Option {
+func WithRequestTimeout(timeout time.Duration) Option {
 	return func(tr *http.Transport, c *http.Client) {
-		c.Timeout = time.Duration(seconds) * time.Second
+		c.Timeout = timeout
 	}
 }
 
@@ -34,17 +33,7 @@ func WithIdleConnTimeout(seconds int) Option {
 	}
 }
 
-func WithProxy(proxyUrl string) Option {
-	if proxyUrl == "" {
-		return func(tr *http.Transport, c *http.Client) {}
-	}
-
-	proxy, err := url.Parse(proxyUrl)
-	if err != nil {
-		fmt.Printf("invalid proxy url %s: %v\n", proxyUrl, err)
-		return func(tr *http.Transport, c *http.Client) {}
-	}
-
+func WithProxy(proxy *url.URL) Option {
 	return func(tr *http.Transport, c *http.Client) {
 		tr.Proxy = http.ProxyURL(proxy)
 	}

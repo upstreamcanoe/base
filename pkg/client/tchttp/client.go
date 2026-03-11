@@ -2,22 +2,31 @@ package tchttp
 
 import (
 	"net/http"
+	"sync"
 	"time"
 )
 
-var (
-	// DefaultClient 是一个预配置的全局 HTTP 客户端，支持长连接复用
-	DefaultClient *http.Client
-)
+var clientOnce sync.Once
+var httpClient *http.Client
 
-func init() {
-	// 初始化默认客户端
-	DefaultClient = NewClient()
+func GetClient() *http.Client {
+	clientOnce.Do(func() {
+		httpClient = NewClient()
+	})
+	return httpClient
+}
+
+func SetClient(c *http.Client) {
+	httpClient = c
 }
 
 // NewClient 创建一个新的、经过配置的 http.Client
 func NewClient(opts ...Option) *http.Client {
-	tr := &http.Transport{}
+	tr := &http.Transport{
+		MaxIdleConns:        100,
+		MaxIdleConnsPerHost: 10,
+		IdleConnTimeout:     90 * time.Second,
+	}
 
 	c := &http.Client{
 		Transport: tr,
